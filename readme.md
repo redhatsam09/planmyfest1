@@ -22,10 +22,6 @@ Plan My Fest
 
 > Space Dev — NASA Space Apps 2025
 
-## Website
-
-- Development: http://localhost:8000/
-
 ## Features
 
 - Search and pin any location on the world map
