@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+xarray
+netcdf4
+pydantic
+python-dotenv
+requests
+scipy
+h5netcdf
+pydap
+google-generativeai
+earthaccess
+pandas

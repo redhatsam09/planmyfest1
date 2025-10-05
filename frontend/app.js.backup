@@ -1,0 +1,777 @@
+document.addEventListener('DOMContentLoaded', () => {
+  // Tutorial System
+  const tutorialSteps = [
+    {
+      title: "Welcome to Weather Analysis",
+      description: "Let's take a quick tour to help you get started with analyzing weather data for your events.",
+      highlight: null,
+      action: null
+    },
+    {
+      title: "Step 1: Choose Your Location",
+      description: "Search for a place in the search bar above, or click anywhere on the map to drop a pin at your desired location.",
+      highlight: ".search-container",
+      action: "highlightSearch"
+    },
+    {
+      title: "Step 2: Select Event Date",
+      description: "Pick the date when your event is planned. You can select any date up to 6 months in the future.",
+      highlight: ".controls-panel",
+      action: "highlightDate"
+    },
+    {
+      title: "Step 3: Analyze Weather",
+      description: "Click the Analyze button to get detailed weather predictions and analysis for your selected location and date.",
+      highlight: ".primary-btn",
+      action: "highlightAnalyze"
+    },
+    {
+      title: "Step 4: View Results",
+      description: "Check the results panel on the right for weather conditions, and the history panel on the left for past 7 days data to help you plan better.",
+      highlight: ".results-panel, #history-sidebar",
+      action: "highlightResults"
+    },
+    {
+      title: "You're All Set!",
+      description: "You now know how to use Weather Analysis! Click anywhere on the map to get started, or close this tutorial.",
+      highlight: null,
+      action: null
+    }
+  ];
+
+  let currentTutorialStep = 0;
+  let tutorialActive = false;
+
+  // Tutorial Elements
+  const tutorialOverlay = document.getElementById('tutorial-overlay');
+  const tutorialTitle = document.getElementById('tutorial-title');
+  const tutorialDescription = document.getElementById('tutorial-description');
+  const tutorialStepCurrent = document.getElementById('tutorial-step-current');
+  const tutorialStepTotal = document.getElementById('tutorial-step-total');
+  const tutorialPrevBtn = document.getElementById('tutorial-prev');
+  const tutorialNextBtn = document.getElementById('tutorial-next');
+  const tutorialSkipBtn = document.getElementById('tutorial-skip');
+  const tutorialCloseBtn = document.getElementById('tutorial-close');
+  const tutorialHighlight = document.getElementById('tutorial-highlight');
+
+  // Check if tutorial elements exist
+  if (!tutorialOverlay) {
+    console.error('Tutorial overlay element not found');
+    return;
+  }
+
+  console.log('Tutorial elements loaded successfully'); // Debug log
+
+  // Tutorial Functions
+  function startTutorial() {
+    // Temporarily disable localStorage check for development/testing
+    // if (localStorage.getItem('weatherAnalysisTutorialCompleted') === 'true') {
+    //   return; // Don't show tutorial if already completed
+    // }
+    
+    tutorialActive = true;
+    currentTutorialStep = 0;
+    updateTutorialStep();
+    tutorialOverlay.classList.remove('hidden');
+    console.log('Tutorial started'); // Debug log
+  }
+
+  function updateTutorialStep() {
+    const step = tutorialSteps[currentTutorialStep];
+    tutorialTitle.textContent = step.title;
+    tutorialDescription.textContent = step.description;
+    tutorialStepCurrent.textContent = currentTutorialStep + 1;
+    tutorialStepTotal.textContent = tutorialSteps.length;
+    
+    // Update button states
+    tutorialPrevBtn.disabled = currentTutorialStep === 0;
+    tutorialNextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+    
+    // Handle highlighting
+    if (step.highlight) {
+      highlightElement(step.highlight);
+    } else {
+      hideHighlight();
+    }
+  }
+
+  function highlightElement(selector) {
+    const elements = document.querySelectorAll(selector);
+    if (elements.length === 0) {
+      console.warn(`Tutorial highlight: No elements found for selector "${selector}"`);
+      return;
+    }
+    
+    // Calculate bounding box for multiple elements
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    elements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      minX = Math.min(minX, rect.left);
+      minY = Math.min(minY, rect.top);
+      maxX = Math.max(maxX, rect.right);
+      maxY = Math.max(maxY, rect.bottom);
+    });
+    
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const padding = 12; // Increased padding for better visual alignment
+    
+    tutorialHighlight.style.left = `${minX - padding}px`;
+    tutorialHighlight.style.top = `${minY - padding}px`;
+    tutorialHighlight.style.width = `${width + (padding * 2)}px`;
+    tutorialHighlight.style.height = `${height + (padding * 2)}px`;
+    tutorialHighlight.classList.add('active');
+    
+    console.log(`Highlighting element: ${selector}, bounds: ${minX},${minY} ${width}x${height}`);
+  }
+
+  function hideHighlight() {
+    tutorialHighlight.classList.remove('active');
+  }
+
+  function nextTutorialStep() {
+    if (currentTutorialStep < tutorialSteps.length - 1) {
+      currentTutorialStep++;
+      updateTutorialStep();
+    } else {
+      completeTutorial();
+    }
+  }
+
+  function prevTutorialStep() {
+    if (currentTutorialStep > 0) {
+      currentTutorialStep--;
+      updateTutorialStep();
+    }
+  }
+
+  function completeTutorial() {
+    tutorialActive = false;
+    localStorage.setItem('weatherAnalysisTutorialCompleted', 'true');
+    tutorialOverlay.classList.add('hidden');
+    hideHighlight();
+  }
+
+  function skipTutorial() {
+    completeTutorial();
+  }
+
+  // Tutorial Event Listeners
+  tutorialNextBtn?.addEventListener('click', nextTutorialStep);
+  tutorialPrevBtn?.addEventListener('click', prevTutorialStep);
+  tutorialSkipBtn?.addEventListener('click', skipTutorial);
+  tutorialCloseBtn?.addEventListener('click', skipTutorial);
+
+  // Add keyboard shortcut to manually trigger tutorial (Ctrl+H)
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'h') {
+      e.preventDefault();
+      localStorage.removeItem('weatherAnalysisTutorialCompleted');
+      startTutorial();
+    }
+  });
+
+  // Start tutorial immediately for testing, then after delay for normal use
+  console.log('Starting tutorial in 2 seconds...');
+  
+  // Make tutorial functions globally accessible for debugging
+  window.showTutorial = () => {
+    localStorage.removeItem('weatherAnalysisTutorialCompleted');
+    startTutorial();
+  };
+  
+  window.hideTutorial = () => {
+    completeTutorial();
+  };
+  
+  setTimeout(() => {
+    startTutorial();
+  }, 2000);
+
+  // Map init with iOS-style controls
+  const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 3);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+  L.control.zoom({ position: 'bottomright', zoomInTitle: 'Zoom in', zoomOutTitle: 'Zoom out' }).addTo(map);
+
+  // Elements
+  const searchInput = document.getElementById('location-search');
+  const suggestions = document.getElementById('search-suggestions');
+  const getBtn = document.getElementById('get-weather-btn');
+  const dateInput = document.getElementById('date-input');
+  const resultsEl = document.getElementById('results-container');
+  const resultsPanel = document.querySelector('.results-panel');
+  const latlonEl = document.getElementById('latlon-display');
+  const locateBtn = document.getElementById('locate-btn');
+  const historyEl = document.getElementById('history-container');
+  const historyLocationEl = document.getElementById('history-location');
+
+  // Set up date input for next 6 months from today (dynamic)
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const maxDate = new Date(today);
+  maxDate.setMonth(maxDate.getMonth() + 6);
+  dateInput.min = today.toISOString().split('T')[0];
+  dateInput.max = maxDate.toISOString().split('T')[0];
+  dateInput.value = today.toISOString().split('T')[0];
+
+  let marker = null;
+
+  function placeMarker(lat, lon) {
+    const latNum = Number(lat), lonNum = Number(lon);
+    if (marker) marker.remove();
+    const customIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="width:20px;height:20px;background:#007AFF;border:3px solid white;border-radius:50%;box-shadow:0 2px 10px rgba(0,122,255,0.3);transform:translate(-50%,-50%)"></div>`,
+      iconSize: [20, 20], iconAnchor: [10, 10]
+    });
+    marker = L.marker([latNum, lonNum], { draggable: true, icon: customIcon }).addTo(map);
+    map.setView([latNum, lonNum], 12);
+    getBtn.disabled = false;
+    updateLatLon(latNum, lonNum);
+    marker.on('dragend', () => {
+      const ll = marker.getLatLng();
+      updateLatLon(ll.lat, ll.lng);
+      reverseGeocode(ll.lat, ll.lng);
+      // refresh sidebar for new location
+      loadPast7Days(ll.lat, ll.lng);
+    });
+    // initial load for location
+    loadPast7Days(latNum, lonNum);
+  }
+
+  function updateLatLon(lat, lon) {
+    const ns = lat >= 0 ? 'N' : 'S';
+    const ew = lon >= 0 ? 'E' : 'W';
+    latlonEl.textContent = `${Math.abs(lat).toFixed(4)}°${ns}, ${Math.abs(lon).toFixed(4)}°${ew}`;
+  }
+
+  // Debounce utility
+  function debounce(fn, ms = 300) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; }
+
+  // Search + autocomplete (Nominatim)
+  async function geocode(q) {
+    const url = new URL('https://nominatim.openstreetmap.org/search');
+    url.searchParams.set('format', 'jsonv2');
+    url.searchParams.set('addressdetails', '1');
+    url.searchParams.set('limit', '8');
+    url.searchParams.set('q', q);
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    return res.json();
+  }
+
+  async function reverseGeocode(lat, lon) {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('format', 'jsonv2');
+      url.searchParams.set('lat', lat);
+      url.searchParams.set('lon', lon);
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data?.display_name) {
+        searchInput.value = data.display_name;
+        historyLocationEl.textContent = data.display_name;
+      }
+    } catch {}
+  }
+
+  function renderSuggestions(items) {
+    suggestions.innerHTML = '';
+    if (!items || items.length === 0) { suggestions.classList.add('hidden'); return; }
+    items.forEach((it, idx) => {
+      const li = document.createElement('li');
+      li.textContent = it.display_name; li.dataset.lat = it.lat; li.dataset.lon = it.lon;
+      if (idx === 0) li.classList.add('active');
+      li.addEventListener('click', () => { selectSuggestion(li); });
+      suggestions.appendChild(li);
+    });
+    suggestions.classList.remove('hidden');
+  }
+
+  function clearSuggestions() { suggestions.innerHTML = ''; suggestions.classList.add('hidden'); }
+
+  function selectSuggestion(el) { const lat = el.dataset.lat, lon = el.dataset.lon; searchInput.value = el.textContent; historyLocationEl.textContent = el.textContent; clearSuggestions(); placeMarker(lat, lon); reverseGeocode(lat, lon); }
+
+  // Keyboard navigation
+  searchInput.addEventListener('keydown', (e) => {
+    const visible = !suggestions.classList.contains('hidden');
+    if (!visible) return;
+    const items = Array.from(suggestions.querySelectorAll('li'));
+    let idx = items.findIndex(li => li.classList.contains('active'));
+    if (e.key === 'ArrowDown') { e.preventDefault(); idx = (idx + 1) % items.length; items.forEach(li => li.classList.remove('active')); items[idx].classList.add('active'); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); idx = (idx - 1 + items.length) % items.length; items.forEach(li => li.classList.remove('active')); items[idx].classList.add('active'); }
+    else if (e.key === 'Enter') { if (idx >= 0) { e.preventDefault(); selectSuggestion(items[idx]); } }
+    else if (e.key === 'Escape') { clearSuggestions(); }
+  });
+
+  const doSearch = debounce(async () => {
+    const q = searchInput.value.trim();
+    if (q.length < 3) { clearSuggestions(); return; }
+    try { const items = await geocode(q); renderSuggestions(items); } catch { clearSuggestions(); }
+  }, 350);
+  searchInput.addEventListener('input', doSearch);
+
+  // API base URL
+  const API_BASE = window.location.origin;
+
+  getBtn.addEventListener('click', async () => {
+    if (!marker) return;
+    const ll = marker.getLatLng();
+    const selectedDate = new Date(dateInput.value);
+    const startDate = new Date(selectedDate); startDate.setDate(startDate.getDate() - 1);
+    const endDate = new Date(selectedDate); endDate.setDate(endDate.getDate() + 1);
+    const payload = {
+      latitude: ll.lat, longitude: ll.lng,
+      start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0],
+      variables: ['T2M','U10M','V10M','PS','RH2M','WS10M','PRECTOTCORR']
+    };
+    resultsEl.innerHTML = '<div class="loading">Analyzing weather data...</div>';
+    try {
+      const res = await fetch(`${API_BASE}/weather`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const result = await res.json();
+      if (res.ok) {
+        renderResults(result.data, result.source, result.validation);
+        // keep sidebar independent; we don't override it here
+        await computeAndRenderProbabilities(ll.lat, ll.lng, selectedDate);
+        if (resultsPanel) {
+          resultsPanel.classList.remove('hidden');
+          resultsPanel.classList.add('show');
+        }
+      } else {
+        resultsEl.innerHTML = `<div class="error">Error: ${result.detail || 'Failed to fetch data'}</div>`;
+      }
+    } catch (err) {
+      resultsEl.innerHTML = `<div class="error">Network Error: ${err.message}</div>`;
+    }
+  });
+
+  // Load past 7 days into left sidebar
+  async function loadPast7Days(lat, lon) {
+    historyEl.innerHTML = '<div class="loading">Loading past 7 days...</div>';
+    const today = new Date();
+    const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const start = new Date(end); start.setDate(end.getDate() - 6); // 7 days inclusive
+    const payload = {
+      latitude: lat,
+      longitude: lon,
+      start_date: start.toISOString().split('T')[0],
+      end_date: end.toISOString().split('T')[0],
+      variables: ['T2M','U10M','V10M','PS','RH2M','WS10M','PRECTOTCORR']
+    };
+    try {
+      const res = await fetch(`${API_BASE}/weather`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const result = await res.json();
+      if (res.ok) {
+        renderSevenDayHistory(result.data);
+      } else {
+        historyEl.innerHTML = `<div class="error">${result.detail || 'Failed to fetch history'}</div>`;
+      }
+    } catch (e) {
+      historyEl.innerHTML = `<div class="error">Network error loading history: ${e.message}</div>`;
+    }
+  }
+
+  async function computeAndRenderProbabilities(lat, lon, selectedDate) {
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
+    let hotTempThreshold = 30.0, windyThreshold = 8.0, heavyRainThreshold = 10.0;
+    if (Math.abs(lat) > 30) hotTempThreshold = 25.0; else if (Math.abs(lat) < 15) hotTempThreshold = 35.0;
+    const isWinter = (lat < 0 && (month >= 6 && month <= 8)) || (lat > 0 && (month >= 12 || month <= 2));
+    const isSummer = (lat < 0 && (month >= 12 || month <= 2)) || (lat > 0 && (month >= 6 && month <= 8));
+    if (isWinter) hotTempThreshold -= 5; else if (isSummer) hotTempThreshold += 2;
+    const thresholds = { T2M: hotTempThreshold, WS10M: windyThreshold, PRECTOTCORR: heavyRainThreshold };
+    const body = { latitude: lat, longitude: lon, start_year: 2020, end_year: 2024, month, day, variables: ['T2M','WS10M','PRECTOTCORR'], thresholds };
+    try {
+      const res = await fetch(`${API_BASE}/probability/doy`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) {
+        const probs = data.probabilities || {}; const summary = data.summary || {};
+        const severeChance = Math.max((probs.WS10M ?? 0), (probs.PRECTOTCORR ?? 0));
+        let html = `<div class="probabilities"><h3>Weather Outlook for ${selectedDate.toLocaleDateString()}</h3>`;
+        if (summary.T2M) { html += `<div class="prob-row"><span>Expected Temperature:</span><strong>${summary.T2M.median.toFixed(1)}°C</strong></div><div class="prob-row"><span>Temperature Range:</span><span>${summary.T2M.p10.toFixed(1)}°C - ${summary.T2M.p90.toFixed(1)}°C</span></div>`; }
+        html += `<div class="prob-row"><span>Hot weather chance (≥${hotTempThreshold}°C):</span><strong>${(probs.T2M ?? 0).toFixed(0)}%</strong></div><div class="prob-row"><span>Windy conditions (≥${windyThreshold} m/s):</span><strong>${(probs.WS10M ?? 0).toFixed(0)}%</strong></div><div class="prob-row"><span>Heavy rain (≥${heavyRainThreshold} mm/day):</span><strong>${(probs.PRECTOTCORR ?? 0).toFixed(0)}%</strong></div><div class="prob-row"><span>Severe weather risk:</span><strong>${severeChance.toFixed(0)}%</strong></div><div class="muted">Based on ${data.n_samples || 0} historical observations (2020-2024)</div>${data.source ? `<div class="muted">Source: ${data.source}</div>` : ''}</div>`;
+        const container = document.createElement('div'); container.innerHTML = html; resultsEl.appendChild(container);
+      }
+    } catch {}
+  }
+
+  function predictWeatherCondition(tempC, windU, windV, pressureVal, humidityFrac, dailyRainMm = 0) {
+    // Normalize pressure to hPa if needed
+    let p_hPa = 1013.25;
+    if (typeof pressureVal === 'number') {
+      if (pressureVal > 2000) p_hPa = pressureVal / 100; // Pa -> hPa
+      else if (pressureVal < 200) p_hPa = pressureVal * 10; // kPa -> hPa
+      else p_hPa = pressureVal; // already hPa
+    }
+    const windSpeed = Math.sqrt(windU * windU + windV * windV);
+    const h = Math.max(0, Math.min(1, humidityFrac ?? 0.5));
+    const t = tempC ?? 0;
+    const rain = dailyRainMm ?? 0;
+    if (rain >= 10 || (h >= 0.85 && p_hPa < 1008)) return { condition: 'Rainy', icon: '○', description: 'Likely showers or rain' };
+    if (windSpeed >= 10) return { condition: 'Windy', icon: '◦', description: 'Strong winds' };
+    if (t >= 32 && h <= 0.6 && p_hPa >= 1008) return { condition: 'Hot & Sunny', icon: '◯', description: 'Hot and mostly sunny' };
+    if (t <= 5) return { condition: 'Cold', icon: '◇', description: 'Cold conditions' };
+    if (h >= 0.75) return { condition: 'Humid', icon: '◊', description: 'Humid and muggy' };
+    if (t >= 26 && h <= 0.65) return { condition: 'Sunny', icon: '◯', description: 'Generally clear' };
+    return { condition: 'Partly Cloudy', icon: '◎', description: 'Mixed clouds and sun' };
+  }
+
+  function renderResults(data, sourceLabel, validation) {
+    if (!data || !data.coords || !data.coords.time || !data.coords.time.data) { resultsEl.innerHTML = '<div class="error">No data returned from server or data is malformed.</div>'; return; }
+    const latest = data.coords.time.data.length - 1;
+    const temp = data.data_vars.T2M?.data?.[latest] ?? null;
+    const windU = data.data_vars.U10M?.data?.[latest] ?? 0;
+    const windV = data.data_vars.V10M?.data?.[latest] ?? 0;
+    const pressureVal = data.data_vars.PS?.data?.[latest];
+    let pressureHpa = 1013.25;
+    if (typeof pressureVal === 'number') {
+      if (pressureVal > 2000) pressureHpa = pressureVal / 100; else if (pressureVal < 200) pressureHpa = pressureVal * 10; else pressureHpa = pressureVal;
+    }
+    let humidity = 0.5; if (data.data_vars.RH2M) humidity = (data.data_vars.RH2M.data[latest] || 50) / 100.0;
+    const rainToday = data.data_vars.PRECTOTCORR?.data?.[latest] ?? 0;
+    const prediction = predictWeatherCondition(temp, windU, windV, pressureHpa, humidity, rainToday);
+    const windSpeed = Math.sqrt(windU * windU + windV * windV);
+    let html = `<div class="weather-prediction"><div class="condition-main">${prediction.icon} ${prediction.condition}</div><div class="condition-desc">${prediction.description}</div></div><div class="weather-details"><div class="detail">Temp ${temp.toFixed(1)}°C</div><div class="detail">Wind ${windSpeed.toFixed(1)} m/s</div><div class="detail">Press ${pressureHpa.toFixed(0)} hPa</div><div class="detail">Humid ${(humidity*100).toFixed(0)}%</div></div>`;
+    const src = sourceLabel || data?.attrs?.source || data?.metadata?.data_source; if (src) html += `<div class="muted">Source: ${src}</div>`;
+    if (validation && !validation.ok) html += `<div class="muted">Data quality note: ${validation.issues.join('; ')}</div>`;
+    resultsEl.innerHTML = html;
+  }
+
+  function renderSevenDayHistory(data) {
+    if (!data || !data.coords || !data.coords.time || !data.coords.time.data) { historyEl.innerHTML = '<div class="error">No historical data available.</div>'; return; }
+    const timeData = data.coords.time.data;
+    const tempData = data.data_vars.T2M?.data || [];
+    const windUData = data.data_vars.U10M?.data || [];
+    const windVData = data.data_vars.V10M?.data || [];
+  const pressureData = data.data_vars.PS?.data || [];
+  const rainData = data.data_vars.PRECTOTCORR?.data || [];
+    const humidityData = data.data_vars.RH2M ? data.data_vars.RH2M.data : null;
+    // group by date
+    const daily = new Map();
+    timeData.forEach((t, i) => {
+      const d = new Date(t);
+      const key = d.toISOString().slice(0,10);
+      const wind = Math.sqrt((windUData[i]||0)**2 + (windVData[i]||0)**2);
+      const p = pressureData[i] != null ? (pressureData[i] < 200 ? pressureData[i] * 10 : pressureData[i]) : null;
+      const h = humidityData ? (humidityData[i] || 50)/100 : null;
+      const entry = daily.get(key) || { temps: [], winds: [], pressures: [], humidities: [], rains: [] };
+      if (tempData[i] != null) entry.temps.push(tempData[i]);
+      entry.winds.push(wind);
+      if (p != null) entry.pressures.push(p);
+      if (h != null) entry.humidities.push(h);
+      if (rainData[i] != null) entry.rains.push(rainData[i]);
+      daily.set(key, entry);
+    });
+    const days = Array.from(daily.entries()).sort(([a],[b]) => a.localeCompare(b)).slice(-7);
+    let html = '<div class="history-cards">';
+    for (const [key, day] of days) {
+      const avgTemp = day.temps.length ? day.temps.reduce((a,b)=>a+b,0)/day.temps.length : NaN;
+      const avgWind = day.winds.length ? day.winds.reduce((a,b)=>a+b,0)/day.winds.length : 0;
+      const avgPressure = day.pressures.length ? day.pressures.reduce((a,b)=>a+b,0)/day.pressures.length : 1013.25;
+      const avgHumidity = day.humidities.length ? day.humidities.reduce((a,b)=>a+b,0)/day.humidities.length : 0.5;
+      const totalRain = day.rains.length ? day.rains.reduce((a,b)=>a+b,0) : 0;
+  const pred = predictWeatherCondition(avgTemp||0, avgWind*Math.cos(Math.PI/4), avgWind*Math.sin(Math.PI/4), avgPressure, avgHumidity, totalRain);
+      const label = new Date(key).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      html += `<div class="history-card">
+        <div class="history-date">${label}</div>
+        <div class="history-condition">${pred.icon} ${pred.condition}</div>
+        <div class="history-temp">Temp ${isFinite(avgTemp)?avgTemp.toFixed(1)+'°C':'—'}</div>
+        <div class="history-wind">Wind ${avgWind.toFixed(1)} m/s</div>
+        <div class="history-wind">Rain ${totalRain.toFixed(1)} mm</div>
+      </div>`;
+    }
+    html += '</div>';
+    historyEl.innerHTML = html;
+  }
+
+  // Map interactions
+  map.on('click', (e) => { placeMarker(e.latlng.lat, e.latlng.lng); reverseGeocode(e.latlng.lat, e.latlng.lng); });
+
+  // Locate me
+  locateBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) return alert('Geolocation not supported');
+    navigator.geolocation.getCurrentPosition((pos) => { const { latitude, longitude } = pos.coords; placeMarker(latitude, longitude); reverseGeocode(latitude, longitude); }, () => alert('Unable to retrieve your location'));
+  });
+
+  // Event Planning Functionality
+  const eventPlanningPanel = document.getElementById('event-planning-panel');
+  const eventTypeSelect = document.getElementById('event-type');
+  const customEventGroup = document.getElementById('custom-event-group');
+  const customEventType = document.getElementById('custom-event-type');
+  const analyzeEventBtn = document.getElementById('analyze-event-btn');
+  const eventAnalysis = document.getElementById('event-analysis');
+  const eventLoading = document.getElementById('event-loading');
+  const suggestLocationsBtn = document.getElementById('suggest-locations-btn');
+  
+  let currentWeatherData = null;
+  let currentEventLocation = null;
+
+  // Show event planning panel when weather data is available
+  function showEventPlanningPanel() {
+    eventPlanningPanel.classList.remove('hidden');
+  }
+
+  // Hide event planning panel
+  function hideEventPlanningPanel() {
+    eventPlanningPanel.classList.add('hidden');
+  }
+
+  // Handle event type selection
+  eventTypeSelect.addEventListener('change', (e) => {
+    const isCustom = e.target.value === 'other';
+    customEventGroup.style.display = isCustom ? 'block' : 'none';
+    updateAnalyzeButton();
+  });
+
+  // Handle custom event type input
+  customEventType.addEventListener('input', updateAnalyzeButton);
+
+  function updateAnalyzeButton() {
+    const hasEventType = eventTypeSelect.value && 
+      (eventTypeSelect.value !== 'other' || customEventType.value.trim());
+    const hasLocation = currentEventLocation;
+    const hasWeatherData = currentWeatherData;
+    
+    analyzeEventBtn.disabled = !(hasEventType && hasLocation && hasWeatherData);
+  }
+
+  // Get effective event type
+  function getEventType() {
+    return eventTypeSelect.value === 'other' ? 
+      customEventType.value.trim() : 
+      eventTypeSelect.value;
+  }
+
+  // Analyze event suitability
+  analyzeEventBtn.addEventListener('click', async () => {
+    if (!currentWeatherData || !currentEventLocation) {
+      alert('Please select a location and analyze weather first');
+      return;
+    }
+
+    const eventType = getEventType();
+    if (!eventType) {
+      alert('Please select an event type');
+      return;
+    }
+
+    showEventLoading();
+
+    try {
+      const response = await fetch('/analyze-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_type: eventType,
+          location: currentEventLocation.name,
+          latitude: currentEventLocation.lat,
+          longitude: currentEventLocation.lng,
+          start_date: dateInput.value,
+          end_date: dateInput.value,
+          weather_data: currentWeatherData,
+          date_range: dateInput.value
+        })
+      });
+
+      const analysis = await response.json();
+      
+      if (analysis.error) {
+        throw new Error(analysis.error);
+      }
+
+      displayEventAnalysis(analysis);
+      
+    } catch (error) {
+      console.error('Event analysis failed:', error);
+      alert(`Event analysis failed: ${error.message}`);
+    } finally {
+      hideEventLoading();
+    }
+  });
+
+  // Suggest alternative locations
+  suggestLocationsBtn.addEventListener('click', async () => {
+    if (!currentEventLocation) {
+      alert('Please select a location first');
+      return;
+    }
+
+    const eventType = getEventType();
+    if (!eventType) {
+      alert('Please select an event type');
+      return;
+    }
+
+    // Extract weather issues from current analysis
+    const weatherIssues = extractWeatherIssues();
+
+    try {
+      const response = await fetch('/suggest-locations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event_type: eventType,
+          original_location: currentEventLocation.name,
+          weather_issues: weatherIssues,
+          radius_km: 100
+        })
+      });
+
+      const suggestions = await response.json();
+      displayLocationSuggestions(suggestions.alternatives || []);
+      
+    } catch (error) {
+      console.error('Location suggestion failed:', error);
+      alert(`Location suggestion failed: ${error.message}`);
+    }
+  });
+
+  function showEventLoading() {
+    eventAnalysis.classList.add('hidden');
+    eventLoading.classList.remove('hidden');
+  }
+
+  function hideEventLoading() {
+    eventLoading.classList.add('hidden');
+    eventAnalysis.classList.remove('hidden');
+  }
+
+  function displayEventAnalysis(analysis) {
+    // Update suitability score
+    const scoreValue = document.getElementById('score-value');
+    const scoreCircle = document.getElementById('score-circle');
+    const scoreTitle = document.getElementById('score-title');
+    
+    scoreValue.textContent = analysis.suitability_score || '-';
+    scoreTitle.textContent = analysis.is_suitable ? 'Suitable for Event' : 'Consider Alternatives';
+    
+    // Update score circle color based on score
+    const score = analysis.suitability_score || 5;
+    const color = score >= 8 ? '#34C759' : score >= 6 ? '#FF9500' : '#FF3B30';
+    const percentage = (score / 10) * 100;
+    scoreCircle.style.background = `conic-gradient(from 0deg, ${color} ${percentage}%, #e5e5e7 ${percentage}%)`;
+
+    // Update weather impact
+    const weatherImpact = document.getElementById('weather-impact');
+    weatherImpact.textContent = analysis.weather_impact || 'No specific weather impact analysis available.';
+
+    // Update recommendations
+    const recommendationsList = document.getElementById('recommendations-list');
+    recommendationsList.innerHTML = '';
+    (analysis.recommendations || []).forEach(rec => {
+      const li = document.createElement('li');
+      li.textContent = rec;
+      recommendationsList.appendChild(li);
+    });
+
+    // Update risk factors
+    const riskFactorsList = document.getElementById('risk-factors-list');
+    riskFactorsList.innerHTML = '';
+    (analysis.risk_factors || []).forEach(risk => {
+      const li = document.createElement('li');
+      li.textContent = risk;
+      riskFactorsList.appendChild(li);
+    });
+
+    // Show/hide sections based on content
+    document.getElementById('recommendations-section').style.display = 
+      (analysis.recommendations && analysis.recommendations.length) ? 'block' : 'none';
+    
+    document.getElementById('risk-factors-section').style.display = 
+      (analysis.risk_factors && analysis.risk_factors.length) ? 'block' : 'none';
+
+    eventAnalysis.classList.remove('hidden');
+  }
+
+  function displayLocationSuggestions(alternatives) {
+    const alternativesContainer = document.getElementById('alternatives-container');
+    const alternativesSection = document.getElementById('alternatives-section');
+    
+    if (!alternatives || alternatives.length === 0) {
+      alternativesSection.style.display = 'none';
+      return;
+    }
+
+    alternativesContainer.innerHTML = '';
+    alternatives.forEach(alt => {
+      const div = document.createElement('div');
+      div.className = 'alternative-item';
+      
+      div.innerHTML = `
+        <div class="alternative-name">${alt.name || 'Unknown Location'}</div>
+        <div class="alternative-distance">${alt.distance || 'Distance unknown'}</div>
+        <div class="alternative-reason">${alt.reason || alt.advantages || 'Better weather conditions expected'}</div>
+      `;
+      
+      alternativesContainer.appendChild(div);
+    });
+
+    alternativesSection.style.display = 'block';
+  }
+
+  function extractWeatherIssues() {
+    // Extract potential weather issues from current analysis or weather data
+    const issues = [];
+    
+    if (currentWeatherData) {
+      // Check for common weather issues
+      if (currentWeatherData.precipitation && currentWeatherData.precipitation > 5) {
+        issues.push('High precipitation expected');
+      }
+      if (currentWeatherData.wind_speed && currentWeatherData.wind_speed > 10) {
+        issues.push('Strong winds expected');
+      }
+      if (currentWeatherData.temperature) {
+        const temp = currentWeatherData.temperature;
+        if (typeof temp === 'object' && temp.max && temp.max > 35) {
+          issues.push('Very high temperatures');
+        } else if (typeof temp === 'object' && temp.min && temp.min < 5) {
+          issues.push('Very low temperatures');
+        } else if (typeof temp === 'number' && (temp > 35 || temp < 5)) {
+          issues.push('Extreme temperatures');
+        }
+      }
+    }
+    
+    return issues.length ? issues : ['Suboptimal weather conditions'];
+  }
+
+  // Update weather data storage when weather is analyzed
+  const originalGetWeatherData = getWeatherDataBtn.onclick;
+  getWeatherDataBtn.addEventListener('click', () => {
+    // Store the current location for event planning
+    if (currentMarker) {
+      const latlng = currentMarker.getLatLng();
+      currentEventLocation = {
+        lat: latlng.lat,
+        lng: latlng.lng,
+        name: document.getElementById('latlon-display').textContent
+      };
+    }
+  });
+
+  // Monitor for successful weather data fetch
+  const originalFetch = window.fetch;
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    
+    // Check if this is a weather API call that succeeded
+    if (args[0] && args[0].includes('/weather') && response.ok) {
+      try {
+        const data = await response.clone().json();
+        currentWeatherData = data;
+        showEventPlanningPanel();
+        updateAnalyzeButton();
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    }
+    
+    return response;
+  };
+});
+

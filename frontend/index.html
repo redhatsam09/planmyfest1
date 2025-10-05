@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan My Fest</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/style.css?v=20251004a">
+</head>
+<body>
+    <!-- Subtle ambient background (keeps page white, adds gentle motion) -->
+    <div class="ambient-canvas" aria-hidden="true">
+        <span class="ring r1"></span>
+        <span class="ring r2"></span>
+        <span class="ring r3"></span>
+        <span class="ring r4"></span>
+        <span class="ring r5"></span>
+    </div>
+    <!-- Site Shell: Centered glass switcher with three tabs -->
+    <div class="site-shell">
+        <div class="center-switcher glass" role="tablist" aria-label="Primary">
+            <button class="switch-btn active" data-view="home" role="tab" aria-selected="true">Home</button>
+            <button class="switch-btn" data-view="app" role="tab" aria-selected="false">App</button>
+            <button class="switch-btn" data-view="about" role="tab" aria-selected="false">About us</button>
+        </div>
+
+        
+    </div>
+
+    <!-- Views Container -->
+    <div id="view-home" class="view active">
+    <section class="hero">
+            <div class="hero-content">
+                <div class="hero-left">
+                    <h1>Plan your event with weather confidence</h1>
+                    <p class="subtitle">Analyze location-based weather using NASA datasets, view recent history, and get smart nearby suggestions — all in a beautiful glass UI.</p>
+                </div>
+                <div class="hero-right">
+                    <img src="/images/logo.png" alt="App Logo" class="hero-image" />
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="view-app" class="view">
+        <div id="map"></div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
+        <div class="tutorial-backdrop"></div>
+        <div class="tutorial-box">
+            <div class="tutorial-content">
+                <div class="tutorial-header">
+                    <div class="tutorial-step">Step <span id="tutorial-step-current">1</span> of <span id="tutorial-step-total">5</span></div>
+                    <button id="tutorial-close" class="tutorial-close">&times;</button>
+                </div>
+                <div class="tutorial-title" id="tutorial-title">Welcome to Plan My Fest</div>
+                <div class="tutorial-description" id="tutorial-description">
+                    Let's take a quick tour to help you get started with analyzing weather data for your events.
+                </div>
+            </div>
+            <div class="tutorial-controls">
+                <button id="tutorial-prev" class="tutorial-btn tutorial-btn-secondary" disabled>Previous</button>
+                <button id="tutorial-skip" class="tutorial-btn tutorial-btn-secondary">Skip Tutorial</button>
+                <button id="tutorial-next" class="tutorial-btn tutorial-btn-primary">Next</button>
+            </div>
+        </div>
+        <div class="tutorial-highlight" id="tutorial-highlight"></div>
+    </div>
+
+    <!-- Left Glass Tabbed Sidebar -->
+    <aside id="history-sidebar" class="glass">
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="history">
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="12" cy="9" r="2.5" fill="currentColor"/>
+                </svg>
+                History
+            </button>
+            <button class="tab-btn" data-tab="suggestions">
+                <svg viewBox="0 0 24 24" fill="none" class="tab-icon">
+                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Suggestions
+            </button>
+        </div>
+
+        <!-- History Tab Content -->
+        <div class="tab-content active" id="history-tab">
+            <div class="history-header">
+                <div class="history-title">Past 7 Days</div>
+                <div class="history-subtitle" id="history-location">Select a location</div>
+            </div>
+            <div id="history-container" class="history-scroll">
+                <div class="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" class="placeholder-icon">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <p>Last 7 days for your selected spot will show here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggestions Tab Content -->
+        <div class="tab-content" id="suggestions-tab">
+            <div class="suggestions-header">
+                <div class="suggestions-title">Nearby Spots</div>
+                <div class="suggestions-subtitle">Best locations</div>
+            </div>
+            <div id="suggestions-container" class="suggestions-scroll">
+                <div class="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" class="placeholder-icon">
+                        <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <p>Find spots with good weather near your selected location.</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay">
+        <div class="search-container">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <input type="text" id="location-search" placeholder="Search for places">
+                <button id="locate-btn" class="locate-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor"/>
+                        <circle cx="12" cy="9" r="2.5" fill="white"/>
+                    </svg>
+                </button>
+            </div>
+            <ul id="search-suggestions" class="suggestions hidden"></ul>
+        </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+        <div class="panel-header">
+            <div class="location-display" id="latlon-display">Select a location</div>
+        </div>
+        
+        <div class="controls-grid">
+            <div class="date-section">
+                <label class="section-label">Event Date</label>
+                <div class="date-picker">
+                    <div class="date-input-wrapper">
+                        <div class="date-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="1.5"/>
+                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <input type="date" id="date-input" class="date-input">
+                        <div class="date-chevron">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="get-weather-btn" class="primary-btn" disabled>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 15h4l3-8 4 16 3-8h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Analyze
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="results-panel hidden">
+        <div id="results-container" class="results-content">
+            <div class="placeholder">
+                <svg viewBox="0 0 24 24" fill="none" class="placeholder-icon">
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 0 1 0 9Z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <p>Select a location and date to see festival planning analysis</p>
+            </div>
+        </div>
+    </div>
+    </div> <!-- /#view-app -->
+
+    <div id="view-about" class="view">
+        <section class="about-hero">
+            <div class="hero-content">
+                <div class="hero-left">
+                    <h1>Space Dev — NASA Space Apps 2025</h1>
+                    <p class="subtitle">This project is created by team Space Dev for the NASA Space Apps Challenge 2025. Our goal is to help great event planners plan more efficiently for their events.</p>
+                    <div class="cta-row">
+                        <a class="linkedin-btn" href="https://www.linkedin.com/in/samdutta07/" target="_blank" rel="noopener noreferrer">
+                            <svg class="linkedin-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM0 8.98h5V24H0zM8.34 8.98H13v2.05c.64-1.2 2.27-2.33 4.68-2.33 5.01 0 5.94 3.3 5.94 7.59V24h-5v-6.63c0-1.58-.03-3.62-2.21-3.62-2.21 0-2.55 1.72-2.55 3.5V24h-5V8.98z" />
+                            </svg>
+                            <span>LinkedIn — Sayandeep Dutta</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <img src="/images/team.png" alt="Space Dev Team" class="about-image" />
+                </div>
+            </div>
+        </section>
+    </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="/static/app.js?v=20251004a"></script>
+        <script>
+            // Site-level view switching with glass animations
+            (function(){
+                const views = {
+                    home: document.getElementById('view-home'),
+                    app: document.getElementById('view-app'),
+                    about: document.getElementById('view-about')
+                };
+                const buttons = Array.from(document.querySelectorAll('[data-view]'));
+                const switchButtons = Array.from(document.querySelectorAll('.switch-btn'));
+
+                function setActiveView(name){
+                    Object.entries(views).forEach(([k, el]) => {
+                        if (!el) return;
+                        if (k === name) el.classList.add('active'); else el.classList.remove('active');
+                    });
+                    switchButtons.forEach(btn => {
+                        btn.classList.toggle('active', btn.getAttribute('data-view') === name);
+                        btn.setAttribute('aria-selected', btn.classList.contains('active'));
+                    });
+                    // Resize Leaflet map when entering the app view
+                    if (name === 'app' && window.appInvalidateMap) {
+                        setTimeout(() => window.appInvalidateMap(), 150);
+                    }
+                }
+
+                buttons.forEach(btn => btn.addEventListener('click', (e) => {
+                    const target = e.currentTarget.getAttribute('data-view');
+                    if (target) setActiveView(target);
+                }));
+
+                // Optional: set view from hash (#app, #home, #about)
+                const fromHash = (loc => loc && ['home','app','about'].includes(loc) ? loc : null)(location.hash.replace('#',''));
+                setActiveView(fromHash || 'home');
+                window.navigateView = setActiveView; // expose for programmatic use
+            })();
+        </script>
+</body>
+</html>
