@@ -51,6 +51,26 @@ Plan My Fest
 3. NASA variables in use
    - T2M (2‑m temperature, °C), U10M/V10M (10‑m wind components, m/s), WS10M (wind speed, m/s), PS (surface pressure), QV2M (specific humidity, g/kg), PRECTOTCORR (precipitation, mm/day), RH2M (relative humidity, % when available).
 
+## Running Locally
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Start the server:
+   ```bash
+   cd /workspaces/planmyfest1/backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+   Server will run at: http://0.0.0.0:8000
+
 ## Usage
 
 1. Open the website and switch to the App.
