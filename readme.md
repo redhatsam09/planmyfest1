@@ -11,12 +11,11 @@ Plan My Fest
 ### [Youtube video](https://youtu.be/FDCffY7zKM0)
 
 <br>
-<img width="1920" height="1080" alt="Screenshot 2025-10-05 093718" src="https://github.com/user-attachments/assets/867d542f-2dde-4a17-b102-92785e5e3d3f" />
+<img width="1920" height="1080" alt="Screenshot 2025-10-05 093718" src="https://github.com/user-attachments/assets/58a9ceb1-ae52-48c9-9c70-ece098f56e64" />
 <br>
 <br>
 <br>
-<img width="1920" height="1080" alt="Screenshot 2025-10-05 093750" src="https://github.com/user-attachments/assets/134bd586-e3a2-4cb8-a7e1-6fe8483c3a8f" />
-
+<img width="1920" height="1080" alt="Screenshot 2025-10-05 093750" src="https://github.com/user-attachments/assets/09d54c86-1157-4918-a152-cc37b0876732" />
 <br>
 <br>
 
